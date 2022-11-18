@@ -20,7 +20,7 @@ export class CustomValidators {
  */
 export class ConfirmValidParentMatcher implements ErrorStateMatcher {
     isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
-        return control.parent.invalid && control.touched;
+        return control && control.parent.invalid && control.touched;
     }
 }
 

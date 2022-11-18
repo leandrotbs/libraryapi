@@ -14,7 +14,7 @@ export class AuthService {
 
   constructor(private http: HttpClient) {
     this.apiUrl = `${environment.apiUrl}${environment.apiPath}/members`;
-    this.isAuthenticated = false;
+    this.setIsAuthenticated(false);
   }
 
   private loggedIn = new BehaviorSubject<boolean>(false);
@@ -27,15 +27,22 @@ export class AuthService {
     return this.http.get<Member>(`${this.apiUrl}/${memberId}`)
       .pipe(
         tap(res => {
-          this.isAuthenticated = res !== null;
+          this.setIsAuthenticated(res !== null);
           this.currentMember = res;
         })
-      );
+        );
   }
 
   logout(): void {
-    this.isAuthenticated = false;
+    this.setIsAuthenticated(false);
     this.currentMember = null;
+  }
+  
+  // 2. (Bug) Fix the AuthGuard to ensure that the member is logged in properly.
+  // Update loggedIn every time isAuthenticated is updated
+  setIsAuthenticated(val: boolean) {
+    this.isAuthenticated = val;
+    this.loggedIn.next(this.isAuthenticated)
   }
 
 }

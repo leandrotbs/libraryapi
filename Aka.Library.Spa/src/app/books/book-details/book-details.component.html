@@ -2,6 +2,7 @@
   <h2>Book Title: {{ book.title }} - {{ book.isbn }}</h2>
   <div>
     <button *ngIf="book.isCheckedOut" mat-button (click)="returnBook()">Return</button>
+    <input type="number" [disabled]="!book.isAvailable || isMaximumNumberOfBooksSignedOut()" matInput placeholder="Check Out Copies" [(ngModel)]="checkOutCopies" />
     <button [disabled]="!book.isAvailable || isMaximumNumberOfBooksSignedOut()" mat-button
       (click)="checkOutBook()">Check out</button>
   </div>
@@ -13,5 +14,13 @@
       There are {{numBooksAvailable}} copies available to borrow
     </p>
     <p>The maximum number of books you can check out is 2. You have currently checked out: {{numBooksSignedOut}}</p>
+    <div *ngIf="bookMetadata">
+      <p *ngIf="bookMetadata.description">
+        Description: {{bookMetadata.description}}
+      </p>
+      <p *ngIf="bookMetadata.authors">
+        Authors: {{bookMetadata.authors.join(', ')}}
+      </p>
+    </div>
   </div>
 </section>

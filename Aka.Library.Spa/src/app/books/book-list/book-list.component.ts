@@ -3,12 +3,12 @@ import { MatTableDataSource, MatSort, MatPaginator } from '@angular/material';
 import { BooksService } from '../../services/books.service';
 import { Library } from '../../shared/library';
 import { Component, OnInit, Input, ViewChild, AfterViewInit, HostBinding } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { forkJoin, zip } from 'rxjs';
 import { Book } from '../../shared/book';
 import { slideInDownAnimation } from '../../animations';
 import { Router, ActivatedRoute } from '@angular/router';
 import { map as lmap, unionBy } from 'lodash';
-import { map } from 'rxjs/operators';
+import { flatMap, map, mergeAll } from 'rxjs/operators';
 
 @Component({
   selector: 'app-book-list',
@@ -22,7 +22,7 @@ export class BookListComponent implements OnInit, AfterViewInit {
   @HostBinding('style.position')  position = 'initial';
 
   currentLibrary: Library;
-  displayedColumns = ['bookId', 'title', 'isbn', 'dateOfPublication', 'availability'];
+  displayedColumns = ['bookId', 'title', 'isbn', 'dateOfPublication', 'availability', 'copies'];
   dataSource = new MatTableDataSource();
   selection = new SelectionModel<Element>(true, []);
 
@@ -41,9 +41,21 @@ export class BookListComponent implements OnInit, AfterViewInit {
         .pipe(
           map(([books, availableBooks]) => {
             return unionBy(lmap(availableBooks, (book: Book) => ({ ...book, isAvailable: true })), books, 'bookId');
-          })
+          }),
+          map((books) => {
+            const obss =  books
+              .map(book => this.books.getNumberOfAvailableBookCopies(this.currentLibrary.libraryId, book.bookId)
+                .pipe(
+                  map(numberOfAvailableCopies => ({ ...book, numberOfAvailableCopies: numberOfAvailableCopies }))
+                )
+              )
+              return zip(...obss);
+          }),
+          mergeAll()
         )
         .subscribe((books: Book []) => {
+          console.log('books')
+          console.log(books)
           this.dataSource.data = books;
         });
     }

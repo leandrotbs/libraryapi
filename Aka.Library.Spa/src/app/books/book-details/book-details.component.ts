@@ -28,6 +28,7 @@ export class BookDetailsComponent implements OnInit {
   numBooksAvailable: number;
   bookMetadata: GoogleBooksMetadata;
   numOfThisBookSignedOutByUser: number;
+  checkOutCopies: number;
 
   constructor(
     private route: ActivatedRoute,
@@ -52,13 +53,35 @@ export class BookDetailsComponent implements OnInit {
    * @memberof BookDetailsComponent
    */
   isMaximumNumberOfBooksSignedOut(): boolean {
-    // TODO: Implement check
-    return false;
+    return this.numBooksSignedOut >= 2;
   }
 
   checkOutBook() {
+    if (!this.checkOutCopies) {
+      alert('Provide number of copies to be checked out')
+      return;
+    }
+
+    if (this.checkOutCopies > this.numBooksAvailable) {
+      alert('You cannot check out more copies than available')
+      return;
+    }
+
+    if (this.checkOutCopies > (2 - this.numBooksSignedOut)) {
+      alert(`The maximum number of books you can check out is ${2 - this.numBooksSignedOut}`)
+      return;
+    }
+
     const params = this.route.snapshot.paramMap;
-    this.books.checkOutBook(+params.get('lid'), +params.get('id'), this.authService.currentMember.memberId)
+
+    const req = new Array();
+    for (let index = 0; index < this.checkOutCopies; index++) {
+      req.push(this.books.checkOutBook(+params.get('lid'), +params.get('id'), this.authService.currentMember.memberId))
+    }
+
+    this.checkOutCopies = null
+
+    forkJoin(req)
       .pipe(
         take(1)
       )
@@ -94,7 +117,8 @@ export class BookDetailsComponent implements OnInit {
       this.books.getBook(libraryId, bookId),
       this.books.getNumberOfAvailableBookCopies(libraryId, bookId),
       this.memberService.getSignedOutBooks(this.authService.currentMember)
-    ]).pipe(
+    ])
+    .pipe(
       take(1),
       tap(([book, numberOfAvailableCopies, signedOutBooks]) => {
         this.numBooksSignedOut = signedOutBooks.length;
@@ -115,7 +139,11 @@ export class BookDetailsComponent implements OnInit {
       catchError(err => {
         return throwError(err);
       })
-    );
+    )
+    .subscribe((book: Book) => {
+      this.book = book;
+    })
+    ;
   }
 
 }

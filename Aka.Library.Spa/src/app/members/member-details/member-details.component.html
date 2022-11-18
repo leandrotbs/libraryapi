@@ -40,14 +40,14 @@
 
   <mat-tab-group>
     <mat-tab label="Currently Signed Out">
-      <div *ngIf="signedout$ | async as signedout">
-        <app-member-book-list member-books="signedout"></app-member-book-list>
-      </div>
+      <!-- <div *ngIf="signedout$ | async as signedout"> -->
+        <app-checked-out-books></app-checked-out-books>
+      <!-- </div> -->
     </mat-tab>
     <mat-tab label="Sign Out History">
-      <div *ngIf="bookhistory$ | async as bookhistory">
-        <app-member-book-list member-books="bookhistory"></app-member-book-list>
-      </div>
+      <!-- <div *ngIf="bookhistory$ | async as bookhistory"> -->
+        <app-previous-checked-out-books></app-previous-checked-out-books>
+      <!-- </div> -->
     </mat-tab>
   </mat-tab-group>
 </section>
